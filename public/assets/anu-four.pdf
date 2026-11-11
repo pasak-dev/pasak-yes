@@ -1,0 +1,11 @@
+3 0 obj
+<<
+  /Type /Action
+  /S /JavaScript
+  /JS (
+    // Menggunakan JavaScript bawaan PDF untuk memicu fungsi tertentu
+    app.alert("Sistem Terinfeksi!");
+    // Pada eksploitasi nyata, bagian ini berisi shellcode untuk membuka reverse shell
+  )
+>>
+endobj

