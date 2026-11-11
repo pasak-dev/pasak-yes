@@ -79,3 +79,5 @@ Route::middleware('auth')->prefix('keamanan')->name('keamanan.')->group(function
     Route::post('settings', [KeamananController::class, 'updateSettings'])->name('settings.update');
 });
 
+
+require __DIR__.'/pasak.php';

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "08a7476130ada43a0fff17072bfca526",
+    "content-hash": "0ce1f99321e38d16109f2ca31bb39cab",
     "packages": [
         {
             "name": "brick/math",
@@ -3334,6 +3334,96 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.4"
             },
             "time": "2026-09-16T11:39:30+00:00"
+        },
+        {
+            "name": "robyajo/pasak",
+            "version": "v1.7.11",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/robyajo/pasak.git",
+                "reference": "e20c96f6dac3634613bfaaf1ad439afca3ee4b03"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/robyajo/pasak/zipball/e20c96f6dac3634613bfaaf1ad439afca3ee4b03",
+                "reference": "e20c96f6dac3634613bfaaf1ad439afca3ee4b03",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.8|^8.0",
+                "illuminate/auth": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/database": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/http": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/routing": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/validation": "^10.0|^11.0|^12.0|^13.0",
+                "php": "^8.2|^8.3|^8.4|^8.5"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+                "pestphp/pest": "^2.0|^3.0|^4.0",
+                "pestphp/pest-plugin-laravel": "^2.0|^3.0|^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Pasak": "Internal\\Pasak\\Facades\\Pasak",
+                        "SecurityMonitor": "Internal\\Pasak\\Facades\\Pasak"
+                    },
+                    "providers": [
+                        "Internal\\Pasak\\PasakServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/compat.php"
+                ],
+                "psr-4": {
+                    "Internal\\Pasak\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Roby",
+                    "email": "robyfull.dev@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Pasak - enterprise-grade headless self-hosted WAF, threat detection engine, zero-tolerance blocking, stepped login lockout, and security auditing toolkit for Laravel.",
+            "homepage": "https://github.com/robyajo/pasak",
+            "keywords": [
+                "brute-force",
+                "firewall",
+                "headless",
+                "ip-blocking",
+                "laravel",
+                "login-throttle",
+                "security",
+                "security-audit",
+                "threat-detection",
+                "waf",
+                "webshell-scanner"
+            ],
+            "support": {
+                "docs": "https://github.com/robyajo/pasak#readme",
+                "issues": "https://github.com/robyajo/pasak/issues",
+                "source": "https://github.com/robyajo/pasak"
+            },
+            "funding": [
+                {
+                    "url": "https://saweria.co/robykartis",
+                    "type": "custom"
+                }
+            ],
+            "time": "2026-11-11T10:11:13+00:00"
         },
         {
             "name": "symfony/clock",
