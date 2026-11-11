@@ -97,7 +97,7 @@
 <div style="margin-bottom: 1rem;">
     <h1 style="margin: 0 0 .25rem 0; font-size: 1.75rem;">🛡️ Pusat Keamanan Sistem (Full Custom)</h1>
     <p style="margin: 0; color: #9ca3af; font-size: .9rem;">
-        Dashboard kustom aplikasi host mengintegrasikan seluruh 8 modul keamanan <code>robyajo/pasak</code>.
+        Dashboard kustom aplikasi host mengintegrasikan seluruh 8 modul keamanan
     </p>
 </div>
 
