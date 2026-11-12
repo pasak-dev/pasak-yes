@@ -1,11 +1,7 @@
 <?php
 
-// Tahan pencarian publik terhadap CWD apa pun: Laravel "php artisan serve"
-// memakai berkas ini sebagai router dan mengganti CWD proses ke public/,
-// sehingga getcwd().'/public' menjadi public/public (tidak ditemukan).
-$publicPath = str_ends_with((string) getcwd(), '/public')
-    ? dirname((string) getcwd()).'/public'
-    : getcwd().'/public';
+// Gunakan lokasi server.php karena CWD dapat berubah saat "php artisan serve".
+$publicPath = __DIR__.DIRECTORY_SEPARATOR.'public';
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
 
 // Emulate Apache / Nginx: never serve hidden/protected files as static files

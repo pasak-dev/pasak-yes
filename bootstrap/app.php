@@ -13,12 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->append([
-            \Internal\Pasak\Http\Middleware\PasakBlockIpAddress::class,
-            \Internal\Pasak\Http\Middleware\PasakDetectSecurityThreats::class,
-            \Internal\Pasak\Http\Middleware\PasakInjectAnnouncementBanner::class,
-        ]);
-
+        
         
        
     })
