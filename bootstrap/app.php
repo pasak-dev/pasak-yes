@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Internal\Pasak\Http\Middleware\PasakInjectAnnouncementBanner::class,
         ]);
 
+        
        
     })
     ->withExceptions(function (Exceptions $exceptions): void {

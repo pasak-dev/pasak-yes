@@ -158,7 +158,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 </laravel-boost-guidelines>
 
-
 <!-- pasak-guidelines:start -->
 ## Pasak WAF & Security Guidelines (`robyajo/pasak`)
 

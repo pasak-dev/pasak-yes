@@ -3337,16 +3337,16 @@
         },
         {
             "name": "robyajo/pasak",
-            "version": "v1.7.11",
+            "version": "v1.7.14",
             "source": {
                 "type": "git",
                 "url": "https://github.com/robyajo/pasak.git",
-                "reference": "e20c96f6dac3634613bfaaf1ad439afca3ee4b03"
+                "reference": "1e083a13602465b49a043fafdde344102f837f47"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/robyajo/pasak/zipball/e20c96f6dac3634613bfaaf1ad439afca3ee4b03",
-                "reference": "e20c96f6dac3634613bfaaf1ad439afca3ee4b03",
+                "url": "https://api.github.com/repos/robyajo/pasak/zipball/1e083a13602465b49a043fafdde344102f837f47",
+                "reference": "1e083a13602465b49a043fafdde344102f837f47",
                 "shasum": ""
             },
             "require": {
@@ -3361,6 +3361,7 @@
                 "php": "^8.2|^8.3|^8.4|^8.5"
             },
             "require-dev": {
+                "doctrine/dbal": "^3.5.1|^4.0",
                 "mockery/mockery": "^1.6",
                 "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
                 "pestphp/pest": "^2.0|^3.0|^4.0",
@@ -3423,7 +3424,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-11-11T10:11:13+00:00"
+            "time": "2026-11-12T00:01:34+00:00"
         },
         {
             "name": "symfony/clock",
