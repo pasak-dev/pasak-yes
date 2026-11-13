@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0ce1f99321e38d16109f2ca31bb39cab",
+    "content-hash": "a58639fb5cdf394fb48065dfab2a766d",
     "packages": [
         {
             "name": "brick/math",
@@ -2616,6 +2616,102 @@
             "time": "2026-11-07T03:57:16+00:00"
         },
         {
+            "name": "pasak-dev/secure-monitor",
+            "version": "v1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pasak-dev/pasak-secure-monitor-laravel.git",
+                "reference": "28235ec3c39e180440ad91fe406fc858e82895b9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pasak-dev/pasak-secure-monitor-laravel/zipball/28235ec3c39e180440ad91fe406fc858e82895b9",
+                "reference": "28235ec3c39e180440ad91fe406fc858e82895b9",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.8|^8.0",
+                "illuminate/auth": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/database": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/http": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/routing": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/validation": "^10.0|^11.0|^12.0|^13.0",
+                "php": "^8.2|^8.3|^8.4|^8.5"
+            },
+            "require-dev": {
+                "doctrine/dbal": "^3.5.1|^4.0",
+                "mockery/mockery": "^1.6",
+                "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+                "pestphp/pest": "^2.0|^3.0|^4.0",
+                "pestphp/pest-plugin-laravel": "^2.0|^3.0|^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Pasak": "Pasak\\SecureMonitor\\Facades\\Pasak",
+                        "SecurityMonitor": "Pasak\\SecureMonitor\\Facades\\Pasak"
+                    },
+                    "providers": [
+                        "Pasak\\SecureMonitor\\PasakServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/compat.php"
+                ],
+                "psr-4": {
+                    "Pasak\\SecureMonitor\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Roby",
+                    "email": "robyfull.dev@gmail.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "pasak-dev",
+                    "email": "pasak.dev@gmail.com",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "Pasak - enterprise-grade headless self-hosted WAF, threat detection engine, zero-tolerance blocking, stepped login lockout, and security auditing toolkit for Laravel.",
+            "homepage": "https://github.com/pasak-dev/pasak-secure-monitor-laravel",
+            "keywords": [
+                "brute-force",
+                "firewall",
+                "headless",
+                "ip-blocking",
+                "laravel",
+                "login-throttle",
+                "security",
+                "security-audit",
+                "threat-detection",
+                "waf",
+                "webshell-scanner"
+            ],
+            "support": {
+                "docs": "https://github.com/pasak-dev/pasak-secure-monitor-laravel#readme",
+                "issues": "https://github.com/pasak-dev/pasak-secure-monitor-laravel/issues",
+                "source": "https://github.com/pasak-dev/pasak-secure-monitor-laravel"
+            },
+            "funding": [
+                {
+                    "url": "https://saweria.co/robykartis",
+                    "type": "custom"
+                }
+            ],
+            "time": "2026-11-12T23:29:26+00:00"
+        },
+        {
             "name": "phpoption/phpoption",
             "version": "1.10.0",
             "source": {
@@ -3334,97 +3430,6 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.4"
             },
             "time": "2026-09-16T11:39:30+00:00"
-        },
-        {
-            "name": "robyajo/pasak",
-            "version": "v1.7.14",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/robyajo/pasak.git",
-                "reference": "1e083a13602465b49a043fafdde344102f837f47"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/robyajo/pasak/zipball/1e083a13602465b49a043fafdde344102f837f47",
-                "reference": "1e083a13602465b49a043fafdde344102f837f47",
-                "shasum": ""
-            },
-            "require": {
-                "guzzlehttp/guzzle": "^7.8|^8.0",
-                "illuminate/auth": "^10.0|^11.0|^12.0|^13.0",
-                "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
-                "illuminate/database": "^10.0|^11.0|^12.0|^13.0",
-                "illuminate/http": "^10.0|^11.0|^12.0|^13.0",
-                "illuminate/routing": "^10.0|^11.0|^12.0|^13.0",
-                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
-                "illuminate/validation": "^10.0|^11.0|^12.0|^13.0",
-                "php": "^8.2|^8.3|^8.4|^8.5"
-            },
-            "require-dev": {
-                "doctrine/dbal": "^3.5.1|^4.0",
-                "mockery/mockery": "^1.6",
-                "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
-                "pestphp/pest": "^2.0|^3.0|^4.0",
-                "pestphp/pest-plugin-laravel": "^2.0|^3.0|^4.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "Pasak": "Internal\\Pasak\\Facades\\Pasak",
-                        "SecurityMonitor": "Internal\\Pasak\\Facades\\Pasak"
-                    },
-                    "providers": [
-                        "Internal\\Pasak\\PasakServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "files": [
-                    "src/compat.php"
-                ],
-                "psr-4": {
-                    "Internal\\Pasak\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Roby",
-                    "email": "robyfull.dev@gmail.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Pasak - enterprise-grade headless self-hosted WAF, threat detection engine, zero-tolerance blocking, stepped login lockout, and security auditing toolkit for Laravel.",
-            "homepage": "https://github.com/robyajo/pasak",
-            "keywords": [
-                "brute-force",
-                "firewall",
-                "headless",
-                "ip-blocking",
-                "laravel",
-                "login-throttle",
-                "security",
-                "security-audit",
-                "threat-detection",
-                "waf",
-                "webshell-scanner"
-            ],
-            "support": {
-                "docs": "https://github.com/robyajo/pasak#readme",
-                "issues": "https://github.com/robyajo/pasak/issues",
-                "source": "https://github.com/robyajo/pasak"
-            },
-            "funding": [
-                {
-                    "url": "https://saweria.co/robykartis",
-                    "type": "custom"
-                }
-            ],
-            "time": "2026-11-12T00:01:34+00:00"
         },
         {
             "name": "symfony/clock",
